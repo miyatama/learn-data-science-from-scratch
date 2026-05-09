@@ -1,0 +1,12 @@
+{
+  "title": "Bar Chart",
+  "x_label": "Category",
+  "y_label": "Value",
+  "categories": ["A", "B", "C", "D"],
+  "series": [
+    {
+      "label": "series1",
+      "data": [10.0, 25.0, 15.0, 30.0]
+    }
+  ]
+}
