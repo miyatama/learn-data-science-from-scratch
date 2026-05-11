@@ -6,12 +6,12 @@
 ┌─────────────────────────────────┐
 │           CLI (main.rs)         │
 │  引数受け取り / 結果表示         │
-└────────────────┬────────────────┘
-                 │
-┌────────────────▼────────────────┐
-│        vector.rs (ライブラリ)    │
-│  ベクトル操作の純粋関数群        │
-└─────────────────────────────────┘
+└────────────┬──────────┬─────────┘
+             │          │
+┌────────────▼───┐ ┌────▼────────────┐
+│  vector.rs     │ │  matrix.rs      │
+│  ベクトル演算  │ │  行列演算       │
+└────────────────┘ └─────────────────┘
 ```
 
 ## コンポーネント設計
@@ -29,10 +29,19 @@
 | `sum_of_squares` | `(v: &[f64]) -> f64` | 二乗和 |
 | `magnitude` | `(v: &[f64]) -> f64` | マグニチュード（ユークリッドノルム） |
 
+### `src/matrix.rs` — 行列演算モジュール
+
+各関数は純粋関数として実装する。副作用なし。
+
+| 関数名 | シグネチャ | 説明 |
+|--------|-----------|------|
+| `shape` | `(matrix: &[Vec<f64>]) -> Result<(usize, usize), String>` | 行列の shape（行数, 列数）を返す |
+
 ### `src/main.rs` — エントリーポイント
 
 - サブコマンド形式でCLIを提供
 - 各演算をサブコマンドとして呼び出す
+- `matrix` はさらにサブコマンドを持つ
 
 ## データモデル
 
@@ -43,11 +52,18 @@ Vector = Vec<f64>
 例: [1.0, 2.0, 3.0]
 ```
 
+行列はRustの `Vec<Vec<f64>>` で表現する。各内側 `Vec<f64>` が1行を表す。
+
+```
+Matrix = Vec<Vec<f64>>
+例: [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]  → 2行3列
+```
+
 ## ユースケース
 
 ```mermaid
 graph TD
-    A[ユーザー] -->|引数でベクトル指定| B[CLI main.rs]
+    A[ユーザー] -->|引数で指定| B[CLI main.rs]
     B --> C{サブコマンド}
     C -->|add| D[vector_add]
     C -->|sub| E[vector_subtract]
@@ -55,12 +71,15 @@ graph TD
     C -->|dot| G[dot_product]
     C -->|sumsq| H[sum_of_squares]
     C -->|magnitude| I[magnitude]
+    C -->|matrix| M{matrix サブコマンド}
+    M -->|shape| N[shape]
     D --> J[結果表示]
     E --> J
     F --> J
     G --> J
     H --> J
     I --> J
+    N --> J
 ```
 
 ## 演算の定義
@@ -110,7 +129,8 @@ result: sqrt(a1^2 + a2^2 + ... + an^2)
 
 | ケース | エラーメッセージ |
 |--------|----------------|
-| 次元不一致 | `"vectors must have the same length"` |
+| ベクトル次元不一致 | `"vectors must have the same length"` |
+| 行列の列数不一致 | `"all rows must have the same number of columns"` |
 
 ## CLIインターフェース
 
@@ -138,4 +158,8 @@ $ cargo run -- sumsq 1,2,3
 # マグニチュード
 $ cargo run -- magnitude 3,4
 5
+
+# 行列 shape
+$ cargo run -- matrix shape "1,2,3;4,5,6"
+(2, 3)
 ```

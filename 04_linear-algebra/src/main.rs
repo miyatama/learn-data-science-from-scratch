@@ -1,3 +1,4 @@
+mod matrix;
 mod vector;
 
 use std::env;
@@ -11,6 +12,10 @@ fn parse_vector(s: &str) -> Result<Vec<f64>, String> {
                 .map_err(|_| format!("invalid number: '{}'", x))
         })
         .collect()
+}
+
+fn parse_matrix(s: &str) -> Result<Vec<Vec<f64>>, String> {
+    s.split(';').map(parse_vector).collect()
 }
 
 fn format_vector(v: &[f64]) -> String {
@@ -41,8 +46,8 @@ fn is_help(args: &[String]) -> bool {
 
 fn print_global_help() {
     println!(
-        "linear-algebra 1.0.1
-Linear algebra vector operations
+        "linear-algebra 2.0.0
+Linear algebra vector and matrix operations
 
 USAGE:
     linear-algebra <COMMAND> [OPTIONS]
@@ -54,6 +59,7 @@ COMMANDS:
     dot        Compute dot product of two vectors
     sumsq      Compute sum of squares of a vector
     magnitude  Compute magnitude of a vector
+    matrix     Matrix operations
 
 OPTIONS:
     -h, --help  Print help information"
@@ -144,8 +150,64 @@ ARGS:
 OPTIONS:
     -h, --help  Print help information"
         ),
+        "matrix" => println!(
+            "linear-algebra-matrix
+Matrix operations
+
+USAGE:
+    linear-algebra matrix <SUBCOMMAND>
+
+SUBCOMMANDS:
+    shape  Get the shape (rows, cols) of a matrix
+
+OPTIONS:
+    -h, --help  Print help information"
+        ),
+        "matrix-shape" => println!(
+            "linear-algebra-matrix-shape
+Get the shape (rows, cols) of a matrix
+
+USAGE:
+    linear-algebra matrix shape <matrix>
+
+ARGS:
+    <matrix>  Matrix (rows separated by ';', cols by ',', e.g. \"1,2,3;4,5,6\")
+
+OPTIONS:
+    -h, --help  Print help information"
+        ),
         _ => print_global_help(),
     }
+}
+
+fn run_matrix(args: &[String]) -> Result<(), String> {
+    if args.is_empty() || args[0] == "-h" || args[0] == "--help" {
+        print_command_help("matrix");
+        return Ok(());
+    }
+
+    let subcmd = args[0].as_str();
+
+    if args.len() > 1 && is_help(&args[1..]) {
+        print_command_help(&format!("matrix-{}", subcmd));
+        return Ok(());
+    }
+
+    match subcmd {
+        "shape" => {
+            if args.len() != 2 {
+                return Err("usage: matrix shape <matrix>".to_string());
+            }
+            let m = parse_matrix(&args[1])?;
+            let (rows, cols) = matrix::shape(&m)?;
+            println!("({}, {})", rows, cols);
+        }
+        _ => {
+            return Err(format!("unknown matrix subcommand: '{}'", subcmd));
+        }
+    }
+
+    Ok(())
 }
 
 fn run() -> Result<(), String> {
@@ -163,7 +225,7 @@ fn run() -> Result<(), String> {
 
     let cmd = args[1].as_str();
 
-    if is_help(&args[2..]) {
+    if cmd != "matrix" && is_help(&args[2..]) {
         print_command_help(cmd);
         return Ok(());
     }
@@ -223,6 +285,9 @@ fn run() -> Result<(), String> {
             let v = parse_vector(&args[2])?;
             let result = vector::magnitude(&v);
             println!("{}", format_scalar(result));
+        }
+        "matrix" => {
+            run_matrix(&args[2..])?;
         }
         _ => {
             return Err(format!("unknown command: '{}'", cmd));
