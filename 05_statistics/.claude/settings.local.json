@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo clippy:*)",
+      "Bash(./target/release/statistics ./examples/statistics.json)"
+    ]
+  }
+}

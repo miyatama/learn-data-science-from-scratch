@@ -37,6 +37,20 @@ pub struct ScatterData {
     pub series: Vec<Series<DataPoint>>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct HistogramData {
+    pub title: Option<String>,
+    pub x_label: Option<String>,
+    pub y_label: Option<String>,
+    pub size: f64,
+    pub x_scale: f64,
+    pub series: Vec<Series<f64>>,
+}
+
+pub fn parse_histogram(json: &str) -> anyhow::Result<HistogramData> {
+    serde_json::from_str(json).map_err(|e| anyhow::anyhow!("Failed to parse histogram JSON: {}", e))
+}
+
 pub fn parse_line(json: &str) -> anyhow::Result<LineData> {
     serde_json::from_str(json).map_err(|e| anyhow::anyhow!("Failed to parse line JSON: {}", e))
 }
