@@ -46,6 +46,7 @@
 | `LineRenderer` | 折れ線グラフ |
 | `BarRenderer` | 棒グラフ |
 | `ScatterRenderer` | 散布図 |
+| `HistogramRenderer` | ヒストグラム |
 
 各Rendererは共通の `Renderer` トレイトを実装する:
 
@@ -117,6 +118,28 @@ trait Renderer {
 }
 ```
 
+### ヒストグラム (histogram)
+
+```json
+{
+  "title": "グラフタイトル（省略可）",
+  "x_label": "X軸ラベル（省略可）",
+  "y_label": "Y軸ラベル（省略可）",
+  "size": 1.0,
+  "x_scale": 20.0,
+  "series": [
+    {
+      "label": "系列名（省略可）",
+      "data": [1.0, 2.0, 2.0, 3.0, 5.0]
+    }
+  ]
+}
+```
+
+- `size`: ビン幅。データをどの区間で集計するかを指定する（float）
+- `x_scale`: x軸の目盛りを打つ間隔（float）
+- `series[].data`: 生データの配列（float配列）。ビン集計はRendererが行う
+
 ## ユースケース
 
 ```mermaid
@@ -131,9 +154,11 @@ graph TD
     F -->|line| G[折れ線グラフ描画]
     F -->|bar| H[棒グラフ描画]
     F -->|scatter| I[散布図描画]
+    F -->|histogram| K[ヒストグラム描画]
     G --> J[PNG出力]
     H --> J
     I --> J
+    K --> J
 ```
 
 ## 画面（出力画像）仕様

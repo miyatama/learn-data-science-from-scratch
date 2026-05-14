@@ -3,7 +3,7 @@ mod parser;
 mod renderer;
 
 use clap::Parser;
-use renderer::{Renderer, bar::BarRenderer, line::LineRenderer, scatter::ScatterRenderer};
+use renderer::{Renderer, bar::BarRenderer, histogram::HistogramRenderer, line::LineRenderer, scatter::ScatterRenderer};
 
 #[derive(Parser)]
 #[command(name = "graph-image", about = "Generate graph images from JSON")]
@@ -17,7 +17,8 @@ struct Cli {
     #[arg(short, long)]
     input: Option<String>,
 
-    #[arg(short = 't', long = "type", default_value = "line")]
+    #[arg(short = 't', long = "type", default_value = "line",
+          help = "Graph type [possible values: line, bar, scatter, histogram]")]
     graph_type: String,
 }
 
@@ -36,8 +37,11 @@ fn main() -> anyhow::Result<()> {
         "scatter" => Box::new(ScatterRenderer {
             data: parser::parse_scatter(&json)?,
         }),
+        "histogram" => Box::new(HistogramRenderer {
+            data: parser::parse_histogram(&json)?,
+        }),
         other => anyhow::bail!(
-            "Unknown graph type: '{}'. Use line, bar, or scatter.",
+            "Unknown graph type: '{}'. Use line, bar, scatter, or histogram.",
             other
         ),
     };
